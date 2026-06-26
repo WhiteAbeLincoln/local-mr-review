@@ -49,12 +49,16 @@ def sync(mr: str | None, repo: str | None) -> None:
 @click.argument("mr", required=False)
 @click.option("-R", "--repo", default=None, help="OWNER/REPO override passed to the forge.")
 @click.option("--json", "as_json", is_flag=True, help="Machine-readable output.")
-def status(mr: str | None, repo: str | None, as_json: bool) -> None:
+@click.option("--unresolved", is_flag=True, help="Show only unresolved threads.")
+@click.option("--file", "file", default=None, help="Show only threads on this source file path.")
+def status(
+    mr: str | None, repo: str | None, as_json: bool, unresolved: bool, file: str | None
+) -> None:
     """Show drafted replies/edits and what is marked ready."""
     rdir = _context()
     forge = make_forge()
     mr_iid = _resolve_iid(forge, mr, repo)
-    report = status_mod.gather_status(rdir, mr_iid)
+    report = status_mod.gather_status(rdir, mr_iid, unresolved=unresolved, file=file)
     click.echo(
         _json.dumps(status_mod.status_json(report), indent=2)
         if as_json
