@@ -21,6 +21,11 @@
       inputs.uv2nix.follows = "uv2nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    git-hooks = {
+      url = "github:cachix/git-hooks.nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs =
@@ -30,6 +35,7 @@
       pyproject-nix,
       uv2nix,
       pyproject-build-systems,
+      git-hooks,
       ...
     }:
     let
@@ -84,18 +90,35 @@
         system:
         let
           pkgs = nixpkgs.legacyPackages.${system};
+
+          # Shared check definitions (ruff, pyrefly, uv lock, pytest) reused by
+          # both the local git hook and CI. See nix/hooks.nix.
+          pre-commit = import ./nix/hooks.nix { inherit pkgs git-hooks system; };
+
+          # Wrapper that runs the hooks against changed files (or --all / --fix).
+          # CI invokes `validate-changes --all`.
+          validate-changes = pkgs.writeShellApplication {
+            name = "validate-changes";
+            text = builtins.readFile ./nix/validate-changes.sh;
+            runtimeInputs = pre-commit.enabledPackages ++ [ pkgs.uv ];
+          };
         in
         {
           default = pkgs.mkShell {
             packages = [
               pkgs.python314
               pkgs.uv
-            ];
+              pkgs.prek
+              validate-changes
+            ]
+            ++ pre-commit.enabledPackages;
             env = {
               UV_PYTHON_DOWNLOADS = "never";
               UV_PYTHON = pkgs.python314.interpreter;
             };
-            shellHook = ''
+            # pre-commit.shellHook installs the prek git hook and writes the
+            # generated .pre-commit-config.yaml; keep unsetting PYTHONPATH after.
+            shellHook = pre-commit.shellHook + ''
               unset PYTHONPATH
             '';
           };

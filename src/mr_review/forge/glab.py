@@ -1,6 +1,7 @@
 import json
 import subprocess
 from collections.abc import Callable
+from typing import Any
 
 ExecRunner = Callable[[list[str], str | None], tuple[int, str, str]]
 
@@ -40,7 +41,7 @@ class GlabRunner:
             )
         return out
 
-    def json(self, args: list[str]) -> object:
+    def json(self, args: list[str]) -> Any:
         out = self.run(args)
         try:
             return json.loads(out)

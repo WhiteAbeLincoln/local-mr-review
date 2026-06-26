@@ -33,6 +33,7 @@ def test_build_context_new_side_uses_head_sha_blob():
         position_type="text",
     )
     block = build_context(pos, fake_git(FILE))
+    assert block is not None
     assert "line3" in block and "> " in block
 
 
@@ -89,6 +90,7 @@ def test_build_context_highlights_full_line_range_span():
         position_type="text",
     )
     block = build_context(pos, fake_git(FILE), radius=3)
+    assert block is not None
     # lines 2,3,4 are all highlighted
     for n, text in [(2, "line2"), (3, "line3"), (4, "line4")]:
         assert any(line.startswith("> ") and text in line for line in block.splitlines())

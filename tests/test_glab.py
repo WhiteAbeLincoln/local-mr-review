@@ -25,6 +25,7 @@ def test_run_raises_forgeerror_with_stderr_on_failure():
     with pytest.raises(ForgeError) as ei:
         runner.run(["mr", "view", "1"])
     assert ei.value.returncode == 1
+    assert ei.value.stderr is not None
     assert "401 Unauthorized" in ei.value.stderr
 
 

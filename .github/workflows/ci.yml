@@ -1,0 +1,50 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# Cancel superseded runs on the same ref so a rapid push series doesn't queue.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # Lint, format, type-check and lockfile checks, plus tests. Everything runs
+  # inside `nix develop` so the checks are identical to the local prek hooks
+  # (both read the same definitions in nix/hooks.nix); the only duplication is
+  # invoking the runner, not the check commands themselves.
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: DeterminateSystems/nix-installer-action@v22
+      - uses: nix-community/cache-nix-action@v7
+        with:
+          primary-key: nix-${{ runner.os }}-${{ hashFiles('flake.lock', 'uv.lock', 'pyproject.toml', 'nix/**') }}
+          restore-prefixes-first-match: nix-${{ runner.os }}-
+          gc-max-store-size-linux: 5G
+      # Materialize the locked venv so the hooks' `uv run …` uses pinned versions.
+      - run: nix develop --command uv sync --locked
+      # ruff-format, ruff-check, pyrefly, uv-lock — the commit-stage hooks.
+      - run: nix develop --command validate-changes --all
+      # pytest is a pre-push hook (not part of `validate-changes --all`), so the
+      # CI counterpart runs it explicitly here.
+      - run: nix develop --command uv run pytest
+
+  # Independent guard: prove the uv2nix derivation (what `nix run` and the
+  # `result` symlink build) still builds from the current lockfile. Catches
+  # breakage uv itself won't — e.g. a dependency with no wheel, given the
+  # flake's sourcePreference = "wheel".
+  nix-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: DeterminateSystems/nix-installer-action@v22
+      - uses: nix-community/cache-nix-action@v7
+        with:
+          primary-key: nix-${{ runner.os }}-${{ hashFiles('flake.lock', 'uv.lock', 'pyproject.toml', 'nix/**') }}
+          restore-prefixes-first-match: nix-${{ runner.os }}-
+          gc-max-store-size-linux: 5G
+      - run: nix build .#default

@@ -77,6 +77,7 @@ def test_round_trip_save_load(tmp_path):
     p = tmp_path / "1.json"
     save_state(p, doc)
     loaded = load_state(p)
+    assert loaded is not None
     assert loaded.threads[0].notes[0].native_id == "n1"
     assert load_state(tmp_path / "missing.json") is None
 
@@ -94,5 +95,6 @@ def test_position_line_range_round_trips_as_tuple():
         position_type="text",
     )
     restored = dict_to_position(position_to_dict(pos))
+    assert restored is not None
     assert restored.line_range == (1, 5)
     assert restored.new_line == 5 and restored.base_sha == "B"

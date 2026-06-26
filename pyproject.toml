@@ -8,7 +8,12 @@ dependencies = ["click>=8.1", "pyyaml>=6.0"]
 mr-review = "mr_review.cli:main"
 
 [dependency-groups]
-dev = ["pytest>=8.0", "ruff>=0.6"]
+dev = [
+    "prek>=0.4.5",
+    "pyrefly>=1.1.1",
+    "pytest>=8.0",
+    "ruff>=0.6",
+]
 
 [build-system]
 requires = ["uv_build>=0.11,<0.12"]
@@ -28,3 +33,11 @@ line-length = 100
 # E501 (line length) is left to the formatter, not a lint failure.
 select = ["E", "F", "I", "UP", "W"]
 ignore = ["E501"]
+
+[tool.pyrefly]
+python-version = "3.14"
+# Only our code; skip the venv and generated trees.
+project-includes = ["src", "tests"]
+# Import roots, mirroring pytest's pythonpath: "src" resolves the mr_review
+# package, "." resolves the tests package (e.g. `from tests.fakes import ...`).
+search-path = ["src", "."]
