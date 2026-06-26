@@ -46,12 +46,17 @@ the parsed file + `plan_thread`:
   thread (`parsed.reply` non-empty and frontmatter `publish` not true). `plan`
   stays focused on actions; `status` owns this classification.
 - **`clean`** — neither of the above.
+- **`error`** — the thread file exists but fails to parse. Set only on the
+  `ParseError` path; the parse error is also surfaced as a warning. Kept
+  distinct from `clean` so `draft_state` filters/automation don't silently skip
+  a broken thread.
 
 `warnings` are `plan_thread`'s warnings (unmarked-divergent edit, dangling
 `edit_notes` handle, empty published reply, etc.) and are shown independently of
 the draft state.
 
-Precedence: `ready` > `wip` > `clean`.
+Precedence: `ready` > `wip` > `clean` (with `error` set independently on parse
+failure).
 
 ## Derived display fields
 
@@ -116,7 +121,7 @@ existing `(nothing marked ready)` line is retained under the summary.
 }
 ```
 
-`draft_state` ∈ `clean | wip | ready`. The existing `actions` and `warnings`
+`draft_state` ∈ `clean | wip | ready | error`. The existing `actions` and `warnings`
 keys are unchanged in meaning; `summary`, `filter`, and the new per-thread
 fields (`reviewers`, `note_count`, `excerpt`, `draft_state`) are additive — an
 agent already reading `actions`/`warnings` keeps working.
@@ -168,6 +173,6 @@ reply and a ready resolve counts once); `wip` = threads with `draft_state ==
 ## Error handling
 
 Unchanged from current `status`: a thread file that fails to parse is reported
-as a per-thread warning (and contributes to the warnings count) rather than
-crashing the command; a thread with no file on disk is treated as `clean` with
-no actions. No new exceptions.
+as a per-thread warning (and contributes to the warnings count) with
+`draft_state: "error"`, rather than crashing the command; a thread with no file
+on disk is treated as `clean` with no actions. No new exceptions.
