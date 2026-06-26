@@ -120,12 +120,23 @@ Then `mr-review status` lists exactly what's ready, and `mr-review publish` post
 After a successful post, the corresponding draft is cleared from the file
 automatically, so re-running `publish` never double-posts.
 
+You can stage these from the CLI instead of editing files by hand — handy for
+agents and scripts. Read a whole thread set with `mr-review show <mr>` (or
+`status --full`), draft a reply with `echo "…" | mr-review draft <mr> --thread N`,
+edit your own note with `… | mr-review draft <mr> --thread N --note M`, and flip
+the publish flag at review time with `mr-review mark <mr> --thread N --publish`.
+The body is read from stdin so multi-line Markdown needs no escaping; re-running
+`draft` replaces the draft rather than appending.
+
 ## Commands
 
 | Command | What it does |
 | --- | --- |
 | `mr-review sync [<mr>] [-R <repo>]` | Fetch discussions; (re)render thread files, preserving your drafts and flagging upstream changes with `⚠`. |
-| `mr-review status [<mr>] [-R <repo>] [--json]` | Read-only summary of threads and pending reply/edit/resolve actions. Posts nothing. `--json` for machine use. |
+| `mr-review status [<mr>] [-R <repo>] [--json] [--unresolved] [--file <p>] [--thread <n>] [--full]` | Read-only summary of threads and pending actions. `--full` adds bodies, diff, and current draft. Posts nothing. |
+| `mr-review show [<mr>] ...` | Alias for `status --full` (same filters). The discoverable way to read whole threads in one call. |
+| `mr-review draft [<mr>] --thread <n> [--note <m>] [--publish] [--resolve]` | Stage a reply (or, with `--note`, edit your own note `m`) from **stdin**. Aliased as `reply`. |
+| `mr-review mark [<mr>] --thread <n> [--publish] [--resolve]` | Flip publish/resolve flags without touching the body — for the explicit approval step. |
 | `mr-review publish [<mr>] [-R <repo>] [--dry-run]` | Post everything marked ready, then re-sync. Non-interactive. `--dry-run` previews the plan. |
 
 `<mr>` is a numeric IID, a branch name, or omitted (uses the current branch). A

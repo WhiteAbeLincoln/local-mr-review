@@ -232,3 +232,76 @@ def test_unparseable_thread_marked_error(tmp_path):
     assert t0.draft_state == "error"
     assert t0.warnings  # the parse error is surfaced as a warning
     assert report.summary["warnings"] == 1
+
+
+def disc_with_diff():
+    # new_line=2 over a 3-line blob so the rendered diff fence has real content
+    pos = DiffPosition("src/foo.py", "src/foo.py", 2, None, "B", "S", "H", None, "text")
+    return Discussion(
+        "dd",
+        True,
+        False,
+        pos,
+        (Note("601", "reviewer", False, False, "t", "t", "Please rename this.", True, False),),
+    )
+
+
+def test_full_text_shows_body_and_diff(tmp_path):
+    forge = FakeForge(MR, [disc_with_diff()])
+    sync(forge, tmp_path, MergeRef(ref="1"), fake_git("a\nb\nc\n"), now="N")
+    out = format_status(gather_status(tmp_path, "1", full=True))
+    assert "Please rename this." in out  # full body, not the 80-char excerpt
+    assert "> 2  b" in out  # the rendered diff hunk, highlighted line
+
+
+def test_full_json_has_notes_diff_draft_and_no_excerpt(tmp_path):
+    forge = FakeForge(MR, [disc_with_diff()])
+    sync(forge, tmp_path, MergeRef(ref="1"), fake_git("a\nb\nc\n"), now="N")
+    t0 = status_json(gather_status(tmp_path, "1", full=True))["threads"][0]
+    assert "excerpt" not in t0
+    assert t0["notes"][0] == {
+        "handle": 1,
+        "author": "reviewer",
+        "created_at": "t",
+        "body": "Please rename this.",
+        "mine": False,
+    }
+    assert "```diff" in t0["diff"]
+    assert t0["draft"] == {"reply": "", "note_edits": {}}
+
+
+def test_non_full_json_unchanged(tmp_path):
+    synced(tmp_path)
+    t0 = status_json(gather_status(tmp_path, "1"))["threads"][0]
+    assert "excerpt" in t0
+    for k in ("diff", "notes", "draft"):
+        assert k not in t0
+
+
+def test_thread_filter_selects_one(tmp_path):
+    synced_multi(tmp_path)
+    report = gather_status(tmp_path, "1", thread=1)
+    assert [t.local_id for t in report.threads] == [1]
+
+
+def test_full_shows_pending_draft_reply_and_edit(tmp_path):
+    # disc(): thread 1, own note handle 2 — stage both a reply and a note edit,
+    # then confirm full text and JSON surface the pending draft (the _append_full
+    # draft branches and the json draft payload).
+    from mr_review import draftwrite
+
+    f = synced(tmp_path)
+    f.write_text(
+        draftwrite.write_note_edit(
+            draftwrite.write_reply(f.read_text(), "My drafted reply."),
+            2,
+            "My edited note.",
+        )
+    )
+    report = gather_status(tmp_path, "1", full=True)
+    out = format_status(report)
+    assert "My drafted reply." in out
+    assert "My edited note." in out
+    draft = status_json(report)["threads"][0]["draft"]
+    assert draft["reply"] == "My drafted reply."
+    assert draft["note_edits"][2] == "My edited note."

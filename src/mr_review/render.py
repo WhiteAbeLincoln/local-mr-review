@@ -5,7 +5,7 @@ import yaml
 from mr_review.domain import DiffPosition
 from mr_review.layout import line_label
 from mr_review.markers import (
-    DRAFT_PREFIX,
+    DRAFT_LINE,
     PUBLISHED_PREFIX,
     neutralize,
     note_close,
@@ -38,6 +38,13 @@ def link_for(position: DiffPosition | None) -> str | None:
     return f"[↗ open {path}:{line if line else ''}](../../{path}{anchor})"
 
 
+def dump_frontmatter(data: dict) -> str:
+    """Serialize frontmatter exactly as thread files store it: insertion order
+    preserved (no key sorting), trailing whitespace stripped. Shared with the
+    write path so drafted files round-trip through sync without reformatting."""
+    return yaml.safe_dump(data, sort_keys=False).rstrip()
+
+
 def _frontmatter(inp: RenderInputs) -> str:
     pos = dict_to_position(inp.thread.position)
     outdated = position_is_outdated(inp.thread.position, inp.mr_head_sha)
@@ -52,7 +59,7 @@ def _frontmatter(inp: RenderInputs) -> str:
         "resolve": inp.resolve,
         "edit_notes": list(inp.edit_notes),
     }
-    return yaml.safe_dump(data, sort_keys=False).rstrip()
+    return dump_frontmatter(data)
 
 
 def _line_value(pos: DiffPosition | None):
@@ -105,7 +112,7 @@ def render_thread(inp: RenderInputs) -> str:
             parts.append(note_close(note.local_id))
         else:
             parts.append(neutralize(note.body))
-    parts.append(f"{DRAFT_PREFIX} — write your reply below this line -->")
+    parts.append(DRAFT_LINE)
     if inp.reply_draft:
         parts.append(inp.reply_draft)
     return "\n\n".join(parts).rstrip() + "\n"
