@@ -222,3 +222,13 @@ def test_filters_compose(tmp_path):
     report = gather_status(tmp_path, "1", unresolved=True, file="src/bar.py")
     assert report.threads == []
     assert report.summary["threads"] == 0
+
+
+def test_unparseable_thread_marked_error(tmp_path):
+    f = synced(tmp_path)
+    f.write_text("not a valid thread file\n")  # no frontmatter -> parse_thread raises ParseError
+    report = gather_status(tmp_path, "1")
+    t0 = report.threads[0]
+    assert t0.draft_state == "error"
+    assert t0.warnings  # the parse error is surfaced as a warning
+    assert report.summary["warnings"] == 1

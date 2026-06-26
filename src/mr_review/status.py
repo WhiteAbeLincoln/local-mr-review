@@ -86,7 +86,7 @@ def gather_status(
                         reviewers=reviewers,
                         note_count=note_count,
                         excerpt=excerpt,
-                        draft_state="clean",
+                        draft_state="error",
                         outdated=outdated,
                         warnings=[f"parse error: {e}"],
                     )
