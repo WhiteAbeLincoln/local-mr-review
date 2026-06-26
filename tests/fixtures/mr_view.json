@@ -1,0 +1,7 @@
+{
+  "iid": 1294,
+  "title": "Add runbook",
+  "web_url": "https://gitlab.com/grp/sub/repo/-/merge_requests/1294",
+  "source_branch": "feat", "target_branch": "main",
+  "diff_refs": {"base_sha": "BASE", "head_sha": "HEAD", "start_sha": "START"}
+}

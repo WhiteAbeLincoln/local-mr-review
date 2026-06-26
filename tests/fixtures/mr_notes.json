@@ -1,0 +1,52 @@
+[
+  {
+    "id": "aaaa1111",
+    "individual_note": false,
+    "notes": [
+      {
+        "id": 501, "author": {"username": "reviewer"},
+        "body": "Why not use the helper here?",
+        "created_at": "2026-06-24T10:00:00Z", "updated_at": "2026-06-24T10:00:00Z",
+        "system": false, "resolvable": true, "resolved": false, "type": "DiffNote",
+        "position": {"new_path": "src/foo.py", "new_line": 42, "old_path": "src/foo.py",
+          "old_line": null, "base_sha": "BASE", "start_sha": "START", "head_sha": "HEAD",
+          "position_type": "text", "line_range": null}
+      },
+      {
+        "id": 502, "author": {"username": "me"},
+        "body": "Good point, but the helper doesn't handle null.",
+        "created_at": "2026-06-24T11:00:00Z", "updated_at": "2026-06-24T11:00:00Z",
+        "system": false, "resolvable": true, "resolved": false, "type": "DiffNote",
+        "position": {"new_path": null, "new_line": null, "old_path": null, "old_line": null,
+          "base_sha": null, "start_sha": null, "head_sha": null,
+          "position_type": null, "line_range": null}
+      }
+    ]
+  },
+  {
+    "id": "bbbb2222",
+    "individual_note": true,
+    "notes": [
+      {
+        "id": 600, "author": {"username": "reviewer"},
+        "body": "General comment about the MR.",
+        "created_at": "2026-06-24T09:00:00Z", "updated_at": "2026-06-24T09:00:00Z",
+        "system": false, "resolvable": false, "resolved": false, "type": "",
+        "position": null
+      }
+    ]
+  },
+  {
+    "id": "cccc3333",
+    "individual_note": true,
+    "notes": [
+      {
+        "id": 700, "author": {"username": "reviewer"},
+        "body": "marked this merge request as **draft**",
+        "created_at": "2026-06-24T08:00:00Z", "updated_at": "2026-06-24T08:00:00Z",
+        "system": true, "resolvable": false, "resolved": false, "type": "",
+        "position": null
+      }
+    ]
+  }
+]
