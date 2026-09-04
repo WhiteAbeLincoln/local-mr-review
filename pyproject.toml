@@ -2,21 +2,21 @@
 name = "mr-review"
 version = "0.1.0"
 requires-python = ">=3.14"
-dependencies = ["click>=8.1", "pyyaml>=6.0"]
+dependencies = ["click>=8.5.0", "pyyaml>=6.0"]
 
 [project.scripts]
 mr-review = "mr_review.cli:main"
 
 [dependency-groups]
 dev = [
-    "prek>=0.4.5",
-    "pyrefly>=1.1.1",
+    "prek>=0.5.1",
+    "pyrefly>=1.2.0",
     "pytest>=8.0",
-    "ruff>=0.6",
+    "ruff>=0.16.5",
 ]
 
 [build-system]
-requires = ["uv_build>=0.11.24,<0.12"]
+requires = ["uv_build>=0.12.8,<0.13"]
 build-backend = "uv_build"
 
 [tool.pytest.ini_options]
